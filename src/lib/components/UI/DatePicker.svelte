@@ -1,47 +1,70 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import Icon from '@iconify/svelte';
 
-	let day = new Date().getDate();
-	let month = new Date().getMonth();
-	let year = new Date().getFullYear();
+	//initialize date
+	let pickedDate: Date = new Date();
 
-	let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-	$: console.log(day, month, year);
+	//store todays date parts
+	let [day, month, year] = [pickedDate.getDate(), pickedDate.getMonth() + 1, pickedDate.getFullYear()];
 
+	//format date to day/month/year
+	let formatedDate = formatDate();
+
+	//months for select input
+	const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+	let yearMin = year;
+	//get days in current month
+	let daysInMonth = new Date(year, month, 0).getDate();
+
+	//update date when day, month or year changes
+	$: {
+		pickedDate.setFullYear(year, month - 1, day);
+		daysInMonth = new Date(year, month, 0).getDate();
+		formatedDate = formatDate();
+		sendPickedDate();
+	}
+
+	//dispatch event to parent component
+	const dispatch = createEventDispatcher();
+
+	//send picked date to parent component
+	function sendPickedDate() {
+		dispatch('dateChanged', pickedDate);
+	}
+
+	//format date to day/month/year
+	function formatDate(): string {
+		return `${day}/${month}/${year}`;
+	}
+
+	//on mount send picked date to parent component
 	onMount(() => {
-		console.log(day, month, year);
+		sendPickedDate();
 	});
 </script>
 
-<div class="flex space-x-2">
-	<label class="form-control max-w-20">
-		<div class="label">
-			<span class="label-text-alt">Day</span>
-		</div>
-		<select bind:value={day} class="select select-bordered">
-			<option disabled selected value={day}>{day}</option>
-			{#each Array.from({ length: 31 }, (_, i) => i + 1) as day}
-				<option value={day}>{day}</option>
-			{/each}
-		</select>
-	</label>
+<div class="dropdown">
+	<div tabindex="-1" class="input input-bordered flex max-w-60 items-center gap-2">
+		<input type="text" readonly class="grow" bind:value={formatedDate} />
+		<Icon icon="mdi:calendar-month-outline" width="1.2em" height="1.2em" />
+	</div>
+	<div tabindex="-1" class="dropdown-content z-[1] card border-neutral card-compact mt-4 pt-3 px-4 w-80 shadow-lg bg-base-100 text-base-content">
+		<div class="card-title justify-center">
+			<select bind:value={month} class="select select-bordered select-xs w-full max-w-xs">
+				{#each months as month, i}
+					<option value={i + 1}>{month}</option>
+				{/each}
+			</select>
 
-	<label class="form-control max-w-24">
-		<div class="label">
-			<span class="label-text-alt">Month</span>
-		</div>
-		<select bind:value={month} class="select select-bordered">
-			<option disabled selected value={month}>{months[month]}</option>
-			{#each months as month, i}
-				<option value={i}>{month}</option>
-			{/each}
-		</select>
-	</label>
+			<select bind:value={day} class="select select-bordered select-xs w-full max-w-xs">
+				{#each Array.from({ length: daysInMonth }, (_, i) => i + 1) as day}
+					<option value={day}>{day}</option>
+				{/each}
+			</select>
 
-	<label class="form-control max-w-20">
-		<div class="label">
-			<span class="label-text-alt">Year</span>
+			<input type="number" min={yearMin} bind:value={year} class="input input-xs input-bordered w-20 max-w-20 text-center" />
 		</div>
-		<input bind:value={year} type="number" class="input input-bordered w-full max-w-xs" />
-	</label>
+	</div>
 </div>
