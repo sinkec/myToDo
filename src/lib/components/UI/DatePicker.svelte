@@ -63,8 +63,7 @@
 					<option value={day}>{day}</option>
 				{/each}
 			</select>
-
-			<input type="number" min={yearMin} bind:value={year} class="input input-xs input-bordered w-20 max-w-20 text-center" />
+			<input type="number" min={yearMin} bind:value={year} class="input input-xs input-bordered w-20 text-center" />
 		</div>
 	</div>
 </div>
